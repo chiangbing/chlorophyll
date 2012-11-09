@@ -1,0 +1,464 @@
+Created by PLY version 3.4 (http://www.dabeaz.com/ply)
+
+Grammar
+
+Rule 0     S' -> template
+Rule 1     template -> expression template
+Rule 2     template -> empty
+Rule 3     empty -> <empty>
+Rule 4     expression -> literal
+Rule 5     expression -> variable
+Rule 6     expression -> reference
+Rule 7     expression -> evaluation
+Rule 8     literal -> LITERAL
+Rule 9     variable -> LVARBOUND IDENTIFIER RVARBOUND
+Rule 10    reference -> SHARP IDENTIFIER
+Rule 11    evaluation -> LVARBOUND IDENTIFIER EQUAL function RVARBOUND
+Rule 12    evaluation -> LVARBOUND EQUAL function RVARBOUND
+Rule 13    function -> IDENTIFIER
+Rule 14    function -> IDENTIFIER LPAREN RPAREN
+Rule 15    function -> IDENTIFIER LPAREN arg_list RPAREN
+Rule 16    arg_list -> kwarg
+Rule 17    arg_list -> kwarg COMMA arg_list
+Rule 18    kwarg -> IDENTIFIER EQUAL value
+Rule 19    value -> literal
+Rule 20    value -> number
+Rule 21    value -> function
+Rule 22    value -> reference
+Rule 23    number -> INTEGER
+Rule 24    number -> FLOAT
+
+Terminals, with rules where they appear
+
+COMMA                : 17
+EQUAL                : 11 12 18
+FLOAT                : 24
+IDENTIFIER           : 9 10 11 13 14 15 18
+INTEGER              : 23
+LITERAL              : 8
+LPAREN               : 14 15
+LVARBOUND            : 9 11 12
+RPAREN               : 14 15
+RVARBOUND            : 9 11 12
+SHARP                : 10
+error                : 
+
+Nonterminals, with rules where they appear
+
+arg_list             : 15 17
+empty                : 2
+evaluation           : 7
+expression           : 1
+function             : 11 12 21
+kwarg                : 16 17
+literal              : 4 19
+number               : 20
+reference            : 6 22
+template             : 1 0
+value                : 18
+variable             : 5
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . template
+    (1) template -> . expression template
+    (2) template -> . empty
+    (4) expression -> . literal
+    (5) expression -> . variable
+    (6) expression -> . reference
+    (7) expression -> . evaluation
+    (3) empty -> .
+    (8) literal -> . LITERAL
+    (9) variable -> . LVARBOUND IDENTIFIER RVARBOUND
+    (10) reference -> . SHARP IDENTIFIER
+    (11) evaluation -> . LVARBOUND IDENTIFIER EQUAL function RVARBOUND
+    (12) evaluation -> . LVARBOUND EQUAL function RVARBOUND
+
+    $end            reduce using rule 3 (empty -> .)
+    LITERAL         shift and go to state 3
+    LVARBOUND       shift and go to state 4
+    SHARP           shift and go to state 8
+
+    reference                      shift and go to state 1
+    evaluation                     shift and go to state 2
+    literal                        shift and go to state 5
+    template                       shift and go to state 6
+    variable                       shift and go to state 7
+    expression                     shift and go to state 9
+    empty                          shift and go to state 10
+
+state 1
+
+    (6) expression -> reference .
+
+    LITERAL         reduce using rule 6 (expression -> reference .)
+    LVARBOUND       reduce using rule 6 (expression -> reference .)
+    SHARP           reduce using rule 6 (expression -> reference .)
+    $end            reduce using rule 6 (expression -> reference .)
+
+
+state 2
+
+    (7) expression -> evaluation .
+
+    LITERAL         reduce using rule 7 (expression -> evaluation .)
+    LVARBOUND       reduce using rule 7 (expression -> evaluation .)
+    SHARP           reduce using rule 7 (expression -> evaluation .)
+    $end            reduce using rule 7 (expression -> evaluation .)
+
+
+state 3
+
+    (8) literal -> LITERAL .
+
+    LITERAL         reduce using rule 8 (literal -> LITERAL .)
+    LVARBOUND       reduce using rule 8 (literal -> LITERAL .)
+    SHARP           reduce using rule 8 (literal -> LITERAL .)
+    $end            reduce using rule 8 (literal -> LITERAL .)
+    COMMA           reduce using rule 8 (literal -> LITERAL .)
+    RPAREN          reduce using rule 8 (literal -> LITERAL .)
+
+
+state 4
+
+    (9) variable -> LVARBOUND . IDENTIFIER RVARBOUND
+    (11) evaluation -> LVARBOUND . IDENTIFIER EQUAL function RVARBOUND
+    (12) evaluation -> LVARBOUND . EQUAL function RVARBOUND
+
+    IDENTIFIER      shift and go to state 11
+    EQUAL           shift and go to state 12
+
+
+state 5
+
+    (4) expression -> literal .
+
+    LITERAL         reduce using rule 4 (expression -> literal .)
+    LVARBOUND       reduce using rule 4 (expression -> literal .)
+    SHARP           reduce using rule 4 (expression -> literal .)
+    $end            reduce using rule 4 (expression -> literal .)
+
+
+state 6
+
+    (0) S' -> template .
+
+
+
+state 7
+
+    (5) expression -> variable .
+
+    LITERAL         reduce using rule 5 (expression -> variable .)
+    LVARBOUND       reduce using rule 5 (expression -> variable .)
+    SHARP           reduce using rule 5 (expression -> variable .)
+    $end            reduce using rule 5 (expression -> variable .)
+
+
+state 8
+
+    (10) reference -> SHARP . IDENTIFIER
+
+    IDENTIFIER      shift and go to state 13
+
+
+state 9
+
+    (1) template -> expression . template
+    (1) template -> . expression template
+    (2) template -> . empty
+    (4) expression -> . literal
+    (5) expression -> . variable
+    (6) expression -> . reference
+    (7) expression -> . evaluation
+    (3) empty -> .
+    (8) literal -> . LITERAL
+    (9) variable -> . LVARBOUND IDENTIFIER RVARBOUND
+    (10) reference -> . SHARP IDENTIFIER
+    (11) evaluation -> . LVARBOUND IDENTIFIER EQUAL function RVARBOUND
+    (12) evaluation -> . LVARBOUND EQUAL function RVARBOUND
+
+    $end            reduce using rule 3 (empty -> .)
+    LITERAL         shift and go to state 3
+    LVARBOUND       shift and go to state 4
+    SHARP           shift and go to state 8
+
+    reference                      shift and go to state 1
+    evaluation                     shift and go to state 2
+    literal                        shift and go to state 5
+    template                       shift and go to state 14
+    variable                       shift and go to state 7
+    expression                     shift and go to state 9
+    empty                          shift and go to state 10
+
+state 10
+
+    (2) template -> empty .
+
+    $end            reduce using rule 2 (template -> empty .)
+
+
+state 11
+
+    (9) variable -> LVARBOUND IDENTIFIER . RVARBOUND
+    (11) evaluation -> LVARBOUND IDENTIFIER . EQUAL function RVARBOUND
+
+    RVARBOUND       shift and go to state 15
+    EQUAL           shift and go to state 16
+
+
+state 12
+
+    (12) evaluation -> LVARBOUND EQUAL . function RVARBOUND
+    (13) function -> . IDENTIFIER
+    (14) function -> . IDENTIFIER LPAREN RPAREN
+    (15) function -> . IDENTIFIER LPAREN arg_list RPAREN
+
+    IDENTIFIER      shift and go to state 18
+
+    function                       shift and go to state 17
+
+state 13
+
+    (10) reference -> SHARP IDENTIFIER .
+
+    COMMA           reduce using rule 10 (reference -> SHARP IDENTIFIER .)
+    RPAREN          reduce using rule 10 (reference -> SHARP IDENTIFIER .)
+    LITERAL         reduce using rule 10 (reference -> SHARP IDENTIFIER .)
+    LVARBOUND       reduce using rule 10 (reference -> SHARP IDENTIFIER .)
+    SHARP           reduce using rule 10 (reference -> SHARP IDENTIFIER .)
+    $end            reduce using rule 10 (reference -> SHARP IDENTIFIER .)
+
+
+state 14
+
+    (1) template -> expression template .
+
+    $end            reduce using rule 1 (template -> expression template .)
+
+
+state 15
+
+    (9) variable -> LVARBOUND IDENTIFIER RVARBOUND .
+
+    LITERAL         reduce using rule 9 (variable -> LVARBOUND IDENTIFIER RVARBOUND .)
+    LVARBOUND       reduce using rule 9 (variable -> LVARBOUND IDENTIFIER RVARBOUND .)
+    SHARP           reduce using rule 9 (variable -> LVARBOUND IDENTIFIER RVARBOUND .)
+    $end            reduce using rule 9 (variable -> LVARBOUND IDENTIFIER RVARBOUND .)
+
+
+state 16
+
+    (11) evaluation -> LVARBOUND IDENTIFIER EQUAL . function RVARBOUND
+    (13) function -> . IDENTIFIER
+    (14) function -> . IDENTIFIER LPAREN RPAREN
+    (15) function -> . IDENTIFIER LPAREN arg_list RPAREN
+
+    IDENTIFIER      shift and go to state 18
+
+    function                       shift and go to state 19
+
+state 17
+
+    (12) evaluation -> LVARBOUND EQUAL function . RVARBOUND
+
+    RVARBOUND       shift and go to state 20
+
+
+state 18
+
+    (13) function -> IDENTIFIER .
+    (14) function -> IDENTIFIER . LPAREN RPAREN
+    (15) function -> IDENTIFIER . LPAREN arg_list RPAREN
+
+    RVARBOUND       reduce using rule 13 (function -> IDENTIFIER .)
+    COMMA           reduce using rule 13 (function -> IDENTIFIER .)
+    RPAREN          reduce using rule 13 (function -> IDENTIFIER .)
+    LPAREN          shift and go to state 21
+
+
+state 19
+
+    (11) evaluation -> LVARBOUND IDENTIFIER EQUAL function . RVARBOUND
+
+    RVARBOUND       shift and go to state 22
+
+
+state 20
+
+    (12) evaluation -> LVARBOUND EQUAL function RVARBOUND .
+
+    LITERAL         reduce using rule 12 (evaluation -> LVARBOUND EQUAL function RVARBOUND .)
+    LVARBOUND       reduce using rule 12 (evaluation -> LVARBOUND EQUAL function RVARBOUND .)
+    SHARP           reduce using rule 12 (evaluation -> LVARBOUND EQUAL function RVARBOUND .)
+    $end            reduce using rule 12 (evaluation -> LVARBOUND EQUAL function RVARBOUND .)
+
+
+state 21
+
+    (14) function -> IDENTIFIER LPAREN . RPAREN
+    (15) function -> IDENTIFIER LPAREN . arg_list RPAREN
+    (16) arg_list -> . kwarg
+    (17) arg_list -> . kwarg COMMA arg_list
+    (18) kwarg -> . IDENTIFIER EQUAL value
+
+    RPAREN          shift and go to state 23
+    IDENTIFIER      shift and go to state 25
+
+    kwarg                          shift and go to state 24
+    arg_list                       shift and go to state 26
+
+state 22
+
+    (11) evaluation -> LVARBOUND IDENTIFIER EQUAL function RVARBOUND .
+
+    LITERAL         reduce using rule 11 (evaluation -> LVARBOUND IDENTIFIER EQUAL function RVARBOUND .)
+    LVARBOUND       reduce using rule 11 (evaluation -> LVARBOUND IDENTIFIER EQUAL function RVARBOUND .)
+    SHARP           reduce using rule 11 (evaluation -> LVARBOUND IDENTIFIER EQUAL function RVARBOUND .)
+    $end            reduce using rule 11 (evaluation -> LVARBOUND IDENTIFIER EQUAL function RVARBOUND .)
+
+
+state 23
+
+    (14) function -> IDENTIFIER LPAREN RPAREN .
+
+    RVARBOUND       reduce using rule 14 (function -> IDENTIFIER LPAREN RPAREN .)
+    COMMA           reduce using rule 14 (function -> IDENTIFIER LPAREN RPAREN .)
+    RPAREN          reduce using rule 14 (function -> IDENTIFIER LPAREN RPAREN .)
+
+
+state 24
+
+    (16) arg_list -> kwarg .
+    (17) arg_list -> kwarg . COMMA arg_list
+
+    RPAREN          reduce using rule 16 (arg_list -> kwarg .)
+    COMMA           shift and go to state 27
+
+
+state 25
+
+    (18) kwarg -> IDENTIFIER . EQUAL value
+
+    EQUAL           shift and go to state 28
+
+
+state 26
+
+    (15) function -> IDENTIFIER LPAREN arg_list . RPAREN
+
+    RPAREN          shift and go to state 29
+
+
+state 27
+
+    (17) arg_list -> kwarg COMMA . arg_list
+    (16) arg_list -> . kwarg
+    (17) arg_list -> . kwarg COMMA arg_list
+    (18) kwarg -> . IDENTIFIER EQUAL value
+
+    IDENTIFIER      shift and go to state 25
+
+    kwarg                          shift and go to state 24
+    arg_list                       shift and go to state 30
+
+state 28
+
+    (18) kwarg -> IDENTIFIER EQUAL . value
+    (19) value -> . literal
+    (20) value -> . number
+    (21) value -> . function
+    (22) value -> . reference
+    (8) literal -> . LITERAL
+    (23) number -> . INTEGER
+    (24) number -> . FLOAT
+    (13) function -> . IDENTIFIER
+    (14) function -> . IDENTIFIER LPAREN RPAREN
+    (15) function -> . IDENTIFIER LPAREN arg_list RPAREN
+    (10) reference -> . SHARP IDENTIFIER
+
+    LITERAL         shift and go to state 3
+    INTEGER         shift and go to state 37
+    FLOAT           shift and go to state 33
+    IDENTIFIER      shift and go to state 18
+    SHARP           shift and go to state 8
+
+    function                       shift and go to state 31
+    reference                      shift and go to state 32
+    number                         shift and go to state 35
+    value                          shift and go to state 34
+    literal                        shift and go to state 36
+
+state 29
+
+    (15) function -> IDENTIFIER LPAREN arg_list RPAREN .
+
+    RVARBOUND       reduce using rule 15 (function -> IDENTIFIER LPAREN arg_list RPAREN .)
+    COMMA           reduce using rule 15 (function -> IDENTIFIER LPAREN arg_list RPAREN .)
+    RPAREN          reduce using rule 15 (function -> IDENTIFIER LPAREN arg_list RPAREN .)
+
+
+state 30
+
+    (17) arg_list -> kwarg COMMA arg_list .
+
+    RPAREN          reduce using rule 17 (arg_list -> kwarg COMMA arg_list .)
+
+
+state 31
+
+    (21) value -> function .
+
+    COMMA           reduce using rule 21 (value -> function .)
+    RPAREN          reduce using rule 21 (value -> function .)
+
+
+state 32
+
+    (22) value -> reference .
+
+    COMMA           reduce using rule 22 (value -> reference .)
+    RPAREN          reduce using rule 22 (value -> reference .)
+
+
+state 33
+
+    (24) number -> FLOAT .
+
+    COMMA           reduce using rule 24 (number -> FLOAT .)
+    RPAREN          reduce using rule 24 (number -> FLOAT .)
+
+
+state 34
+
+    (18) kwarg -> IDENTIFIER EQUAL value .
+
+    COMMA           reduce using rule 18 (kwarg -> IDENTIFIER EQUAL value .)
+    RPAREN          reduce using rule 18 (kwarg -> IDENTIFIER EQUAL value .)
+
+
+state 35
+
+    (20) value -> number .
+
+    COMMA           reduce using rule 20 (value -> number .)
+    RPAREN          reduce using rule 20 (value -> number .)
+
+
+state 36
+
+    (19) value -> literal .
+
+    COMMA           reduce using rule 19 (value -> literal .)
+    RPAREN          reduce using rule 19 (value -> literal .)
+
+
+state 37
+
+    (23) number -> INTEGER .
+
+    COMMA           reduce using rule 23 (number -> INTEGER .)
+    RPAREN          reduce using rule 23 (number -> INTEGER .)
+
