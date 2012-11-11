@@ -3,19 +3,40 @@
 import utils
 import sys
 import random
+import types
 
 
 # seed current timestamp
 utils.reseed()
 
 
-def gens(name):
+class GeneratorNotFound(Exception):
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
+
+
+def gens(name, search_gens=True):
     '''Get register generator from name.'''
-    gen_name = name + '_gen'
-    try:
-        return globals()[gen_name]
-    except:
-        return None
+    if search_gens:
+        gen_name = name + '_gen'
+        if gen_name in globals():
+            return globals()[name + '_gen']
+
+    # not search x_gen function
+    if name in globals():
+        # we are not sure it's a generator or function
+        if type(globals()[name]) is types.GeneratorType:
+            return globals()[name]
+        else:
+            return utils.create_func_gen(globals()[name])
+    elif name in globals()['__builtins__']:
+        return utils.create_func_gen(globals()['__builtins__'][name])
+    else:
+        raise GeneratorNotFound('Cannot create generator for ' + name)
 
 
 ##############################
@@ -29,7 +50,7 @@ def rand_int(min=0, max=sys.maxint):
 
 def int_gen(min=0, max=sys.maxint):
     """Integer generator."""
-    for x in utils.x_gen(rand_int, min, max):
+    for x in utils.rand_gen(rand_int, min, max):
         yield x
 
 # Generate strings
@@ -46,13 +67,13 @@ def rand_str(minlen=1, maxlen=64, chrset=string.letters + string.digits):
 
 def str_gen(len_=64, chrset=string.letters + string.digits):
     """Fixed-length string generator."""
-    for x in utils.x_gen(rand_str, len_, len_, chrset):
+    for x in utils.rand_gen(rand_str, len_, len_, chrset):
         yield x
 
 
 def varstr_gen(minlen=1, maxlen=64, chrset=string.letters + string.digits):
     """Variable-length string generator."""
-    for x in utils.x_gen(rand_str, minlen, maxlen, chrset):
+    for x in utils.rand_gen(rand_str, minlen, maxlen, chrset):
         yield x
 
 
@@ -75,7 +96,7 @@ def rand_msisdn(segs=MSISDN_SEGS, cc_prefix=False):
 
 def msisdn_gen(segs=MSISDN_SEGS, cc_prefix=False):
     """MSISDN generator."""
-    for x in utils.x_gen(rand_msisdn, segs, cc_prefix):
+    for x in utils.rand_gen(rand_msisdn, segs, cc_prefix):
         yield x
 
 
@@ -92,7 +113,7 @@ def rand_imsi():
 
 def imsi_gen():
     """IMSI generator."""
-    for x in utils.x_gen(rand_imsi):
+    for x in utils.rand_gen(rand_imsi):
         yield x
 
 
@@ -126,7 +147,7 @@ def path_gen(min_fn=1, max_fn=10,
              min_depth=1, max_depth=5,
              prefix=[], suffix=[]):
     """Path generator."""
-    for x in utils.x_gen(rand_path,
+    for x in utils.rand_gen(rand_path,
                          min_fn=min_fn, max_fn=max_fn,
                          min_depth=min_depth, max_depth=max_depth,
                          prefix=prefix, suffix=suffix):
@@ -149,7 +170,7 @@ def rand_ip(prefix=[]):
 
 def ip_gen(prefix=[]):
     """IP generator."""
-    for x in utils.x_gen(rand_ip, prefix):
+    for x in utils.rand_gen(rand_ip, prefix):
         yield x
 
 
@@ -187,7 +208,7 @@ def rand_status(status_dist=HTTP_STATUS_DIST):
 
 def status_gen(status_dist=HTTP_STATUS_DIST):
     """HTTP status code generator."""
-    for x in utils.x_gen(rand_status, status_dist):
+    for x in utils.rand_gen(rand_status, status_dist):
         yield x
 
 # Generator host names
@@ -210,7 +231,7 @@ def host_gen(min_hn=3, max_hn=10,
              min_depth=2, max_depth=4,
              prefix=[], suffix=[]):
     """Host name generator."""
-    for x in utils.x_gen(rand_host, **locals()):
+    for x in utils.rand_gen(rand_host, **locals()):
         yield x
 
 
@@ -238,7 +259,7 @@ def url_gen(schema='http://',
             min_path_depth=2, max_path_depth=4,
             path_prefix=[], path_suffix=[]):
     """URL generator."""
-    for x in utils.x_gen(rand_url, **locals()):
+    for x in utils.rand_gen(rand_url, **locals()):
         yield x
 
 # Generate web agent names
@@ -259,7 +280,7 @@ def rand_webagent(agents=WEB_AGENTS):
 
 def webagent_gen(agents=WEB_AGENTS):
     """Web agent generator."""
-    for x in utils.x_gen(rand_webagent, agents):
+    for x in utils.rand_gen(rand_webagent, agents):
         yield x
 
 

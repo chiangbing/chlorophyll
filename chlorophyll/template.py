@@ -20,7 +20,7 @@ tokens = (
     'RVARBOUND',
     'COMMA',
     'EQUAL',
-    'SHARP',
+    'AMPERSAND',
     'IDENTIFIER',
     'LITERAL',
     'INTEGER',
@@ -37,7 +37,7 @@ lvarbound = r'\$\{'
 rvarbound = r'\}'
 equal = r'\='
 comma = r'\,'
-sharp = r'\#'
+ampersand = r'\&'
 identifier = r'[_A-Za-z][_\w]*'
 
 t_LPAREN = lparen
@@ -46,13 +46,15 @@ t_LVARBOUND = lvarbound
 t_RVARBOUND = rvarbound
 t_COMMA = comma
 t_EQUAL = equal
-t_SHARP = sharp
+t_AMPERSAND = ampersand
 t_IDENTIFIER = identifier
+
+t_ignore_COMMENT = r'\#.*'
 
 literal = quote + r'(?P<name>([^"]|(?<=\\)")*)' + quote
 @TOKEN(literal)
 def t_LITERAL(t):
-    t.value = t.lexer.lexmatch.group('name')
+    t.value = t.lexer.lexmatch.group('name').replace(r'\"', r'"')
     return t
 
 integer = r'\d+'
@@ -112,7 +114,7 @@ def p_variable(p):
 
 
 def p_reference(p):
-    '''reference : SHARP IDENTIFIER'''
+    '''reference : AMPERSAND IDENTIFIER'''
     p[0] = ('REFERENCE', p[2])
 
 
@@ -138,12 +140,23 @@ def p_function(p):
 
 
 def p_arg_list(p):
-    '''arg_list : kwarg
-                | kwarg COMMA arg_list'''
+    '''arg_list : arg_item
+                | arg_item COMMA arg_list'''
     if len(p) == 2:
         p[0] = [p[1]]
     elif len(p) == 4:
         p[0] = [p[1]] + p[3]
+
+
+def p_arg_item(p):
+    '''arg_item : arg
+                | kwarg'''
+    p[0] = p[1]
+
+
+def p_arg(p):
+    '''arg : value'''
+    p[0] = ('ARG', p[1])
 
 
 def p_kwarg(p):
@@ -164,7 +177,11 @@ def p_number(p):
               | FLOAT'''
     p[0] = ('NUMBER', p[1])
 
-parser = yacc.yacc()
+
+def p_error(p):
+    pass
+
+parser = yacc.yacc(debug=1)
 
 
 #######################
@@ -218,16 +235,27 @@ class NotSupportedYetError(Exception):
         return repr(self.value)
 
 
+class InternalParseError(Exception):
+    '''Internal parsing error, should not happen.'''
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
+
+
 class Template(object):
 
-    def __init__(self, filename):
-        with open(filename, 'r') as f:
-            self.ast = parser(f.read())
-
-        self.exprs = {}
-        self.id = 0
-        # reference table
+    def __init__(self, tplstr):
+        self.ast = parser.parse(tplstr)
+        # keep a map from id to expr handler, include all levels of expression
+        self.handlers = {}
+        # keep a ordered list of id, only top level expressions
+        self.exprids = []
+        # refs = {var => [ref_id1, ref_id2, ...]}
         self.refs = {}
+        # auto-increase id
+        self.id = 0
 
         # travel through all expressions
         for expr in self.ast:
@@ -235,91 +263,131 @@ class Template(object):
 
         self._resolve_refs()
 
-    def bind(self, var, generator):
+    def bind(self, var, handler):
         '''Bind a variable.'''
-        if var not in self.exprs:
+        if var not in self.handlers:
             raise InvalidBindError('Try to bind non-existing variable ' + var)
-
-        self.exprs[var] = generator
+        self.handlers[var] = handler
         self._resolve_refs_for_var(var)
 
     def render(self, num, bindings={}):
         '''Render this template.'''
-        for var, generator in bindings.iteritems():
-            self.exprs[var] = generator
+        for var, handler in bindings.iteritems():
+            self.handlers[var] = handler
 
         # check unbind
-        for var, generator in bindings.iteritems():
-            if generator == None:
+        for var, handler in self.handlers.iteritems():
+            if handler is None:
                 raise UnBindError('Unbind variable ' + var)
 
         def _gen():
             for _ in xrange(0, num):
-                yield [next(self.exprs[t.value]) for t in self._tokens]
+                yield (next(self.handlers[i]) for i in self.exprids)
         return _gen()
 
     def _handle_expr(self, expr):
+        eid, hndler = None, None
         if expr[0] == 'LITERAL':
-            self._add_expr_handler('_', self._literal_handler(expr[1]))
+            eid, hndler = self._handle_literal(expr)
         elif expr[0] == 'VARIABLE':
-            # unbind variable
-            self._add_expr_handler(expr[1], None)
+            eid, hndler = self._handle_variable(expr)
         elif expr[0] == 'REFERENCE':
-            self._handle_ref(expr)
+            eid, hndler = self._handle_ref(expr)
         elif expr[0] == 'EVALUATION':
-            self._add_expr_handler(expr[1], self._func_handler(expr[2]))
+            eid, hndler = self._handle_evaluation(expr)
+        else:
+            raise InternalParseError('Unkown expression type.')
+        self._add_expr_handler(eid, hndler)
+
+    def _handle_literal(self, expr):
+        '''Handle literal.'''
+        assert expr[0] == 'LITERAL'
+        eid = self._nextid()
+        hndler = itertools.repeat(expr[1])
+        return eid, hndler
+
+    def _handle_variable(self, expr):
+        '''Handle variable.'''
+        assert expr[0] == 'VARIABLE'
+        eid = expr[1]
+        hndler = None   # unbind now
+        return eid, hndler
 
     def _handle_ref(self, expr):
-            ref_id = self._nextid('_')
-            self._ref_handler(ref_id, expr[1])
-            # set the real handler for ref when everything is done
-            self._add_expr_handler(ref_id, None)
+        '''Handle reference.'''
+        assert expr[0] == 'REFERENCE'
+        # set a empty Reference now and resolve later
+        eid = self._nextid()
+        hndler = Reference(handler=None)
+        # add eid to self.refs
+        if not expr[1] in self.refs:
+            self.refs[expr[1]] = []
+        self.refs[expr[1]].append(eid)
+        return eid, hndler
 
-    def _add_expr_handler(self, name, handler):
-        if name in self.exprs:
-            raise DuplicateNameError('Duplicate name found: ' + name)
-        if name == '_':
-            name = self._nextid()
-        self.exprs[name] = handler
+    def _handle_evaluation(self, expr):
+        '''Handle evaluation.'''
+        assert expr[0] == 'EVALUATION'
+        eid = expr[1]
+        if eid == '_':
+            eid = self._nextid()
+        hndler = self._func_handler(expr[2])
+        return eid, hndler
+
+    def _add_expr_handler(self, eid, handler):
+        if eid in self.handlers:
+            raise DuplicateNameError('Duplicate name found: ' + eid)
+        self.handlers[eid] = handler
+        self.exprids.append(eid)
+        return eid
 
     def _nextid(self):
         self.id += 1
         return '_ID_' + str(self.id)
 
-    def _literal_handler(str):
-        return itertools.repeat(str)
-
-    def _ref_handler(self, ref_id, var):
-        '''self.refs = {var => [ref_id1, ref_id2, ...]}'''
-        if not var in self.refs:
-            self.refs[var] = []
-        self.refs[var].append(ref_id)
-
     def _func_handler(self, expr):
         assert expr[0] == 'FUNCTION'
 
-        gen = gens.gens(expr[1])
-        if gen is None:
-            raise FunctionNotFound('Function not found: ' + expr[1])
-
+        # resolve arguments
+        vargs = []
+        kwargs = {}
         if len(expr) > 2:
             # have args
-            kwargs = {}
-            for k, v in expr[2]:
-                if v[0] == 'LITERAL' or v[0] == 'NUMBER':
-                    kwargs[k] = v[1]
+            for arg_item in expr[2]:
+                if arg_item[0] == 'ARG':
+                    vargs.append(self._func_arg_val(arg_item[1]))
+                elif arg_item[0] == 'KWARG':
+                    kwargs[arg_item[1]] = self._func_arg_val(arg_item[2])
                 else:
-                    raise NotSupportedYetError(
-                        'Not support REFERENCE and FUNCTION in arguments yet.')
-                # elif v[0] == 'REFERENCE':
-                #     self._handle_ref(v)
-                # elif v[0] == 'FUNCTION':
-        return gen(**kwargs)
+                    raise InternalParseError('Unknow function arg_item type: ' + arg_item[0])
+        # resolve function
+        try:
+            gen = gens.gens(expr[1])
+            if gen is None:
+                raise FunctionNotFound('Function not found: ' + expr[1])
+            return gen(*vargs, **kwargs)
+        except TypeError:
+            # retry with search_gens=False
+            gen = gens.gens(expr[1], search_gens=False)
+            if gen is None:
+                raise FunctionNotFound('Function not found: ' + expr[1])
+            return gen(*vargs, **kwargs)
+
+    def _func_arg_val(self, val):
+        if val[0] == 'LITERAL' or val[0] == 'NUMBER':
+            return val[1]
+        elif val[0] == 'REFERENCE':
+            eid, hndler = self._handle_ref(val)
+            # add to self.handlers but not self.exprs
+            self.handlers[eid] = hndler
+            return hndler
+        elif val[0] == 'FUNCTION':
+            return self._func_handler(val)
 
     def _resolve_refs(self):
         '''Resolve reference table.'''
         for var in self.refs.keys():
-            if self.exprs[var] is None:
+            if self.handlers[var] is None:
                 # unbind yet
                 continue
             else:
@@ -327,10 +395,25 @@ class Template(object):
 
     def _resolve_refs_for_var(self, var):
         ref_list = self.refs[var]
-        gs = itertools.tee(self.exprs[var], len(ref_list) + 1)
-        self.exprs[var] = gs[0]
+        gs = itertools.tee(self.handlers[var], len(ref_list) + 1)
+        self.handlers[var] = gs[0]
         for i, ref in enumerate(ref_list):
-            self.exprs[ref] = gs[i + 1]
+            self.handlers[ref].handler = gs[i + 1]
+
+
+class Reference(object):
+    '''Reference to function or variable.'''
+    def __init__(self, handler=None):
+        self.handler = handler
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        if self.handler is None:
+            return None
+        else:
+            return next(self.handler)
 
 
 # test
