@@ -1,4 +1,4 @@
-Chloriphyll (Under Development ...)
+Chlorophyll (Under Development ...)
 ===========
 
 By Clay Chiang (chiangbing@gmail.com)
