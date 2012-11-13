@@ -13,7 +13,9 @@ Chlorophyll is a utility for generating test data.
 Usage
 -----
 
-python chlorophyll.py <config>
+<code>
+$ python chlorophyll.py &lt;config&gt;
+</code>
 
 
 Configuration
@@ -21,28 +23,30 @@ Configuration
 
 Chlorophyll is configured with a separate python source file, which contains below parts:
 
-File header template (appear once):
+<h3>File Header Template</h3>
+File header appears once in the beginning of the generated file.<br/>
 <code>
 header_template = '''
 ...
 '''
 </code>
 
-<br/>
-
-Template line for each line of file body:
+<h3>Line Template</h3>
+Template for each line of file body.<br/>
 <code>
 line_template = '''
 ...
 '''
 </code>
 
-Number of lines of file body:
+<h3>Line Number</h3>
+Number of lines of file body (evaluated by "line_template"). <br/>
 <code>
 line_number = 100
 </code>
 
-And if you want to use customized function in template, you also have to define them here:
+<h3>Customized Functions</h3>
+And if you want to use customized function in template, you also have to define them here.<br/>
 <code>
 def my_customized_func():
     return something
