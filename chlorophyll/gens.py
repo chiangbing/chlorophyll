@@ -10,6 +10,10 @@ import types
 utils.reseed()
 
 
+def import_file(file):
+    execfile(file, globals())
+
+
 class GeneratorNotFound(Exception):
 
     def __init__(self, value):

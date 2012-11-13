@@ -16,11 +16,16 @@ line_template = '''
 " Builtin Function 2:                "   "${=int(\\"01010\\", base=2)    " ${=int("01010", base=2)}        "\n"
 " Builtin Gens 2:                    "   "${=int}                    " ${=int}                         "\n"
 " Builtin Gens 3:                    "   "${=int(min=1, max=10)}     " ${=int(min=1, max=10)}          "\n"
+" Custom Function 1:                 "   "${=my_len(&uo)}            " ${=my_len(&uo)}          "\n"
 '''
 
 line_number = 3
 
 # }}}
 
+
 # Custom functions
-# TODO
+
+# functions
+def my_len(iterable):
+    return len(next(iterable))

@@ -20,6 +20,9 @@ if __name__ == '__main__':
     conf_file = sys.argv[1]
     execfile(conf_file)
 
+    # import conf_file into gens also
+    gens.import_file(conf_file)
+
     # check must-have configs defined?
     try:
         line_template
