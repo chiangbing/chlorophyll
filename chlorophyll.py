@@ -18,7 +18,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     conf_file = sys.argv[1]
-    execfile(conf_file)
+    exec(open(conf_file).read())
 
     # import conf_file into gens also
     gens.import_file(conf_file)
@@ -38,11 +38,11 @@ if __name__ == '__main__':
 
     # check optional configs
     try:
-        print header_template
+        print(header_template)
     except NameError:
         pass
 
 
     tpl = template.Template(line_template)
     for line in tpl.render(line_number):
-        print ''.join(str(_) for _ in line)
+        print(''.join(str(_) for _ in line))

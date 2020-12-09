@@ -74,5 +74,5 @@ def rand_list(rand_func, minlen, maxlen, prefix=[], suffix=[]):
     seen_len = len(prefix) + len(suffix)
     alen = random.randint(minlen, maxlen)
     alen = max(seen_len, alen)
-    parts = [rand_func() for _ in xrange(seen_len, alen)]
+    parts = [rand_func() for _ in range(seen_len, alen)]
     return prefix + parts + suffix

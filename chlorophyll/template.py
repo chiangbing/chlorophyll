@@ -4,7 +4,7 @@
 # Template Lexer #
 ##################
 
-import gens
+from . import gens
 
 import ply.lex as lex
 import ply.yacc as yacc
@@ -72,7 +72,7 @@ def t_FLOAT(t):
 
 
 def t_error(t):
-    print "Illegal character '%s'" % t.value[0]
+    print("Illegal character '%s'" % t.value[0])
 
 lexer = lex.lex()
 
@@ -272,16 +272,16 @@ class Template(object):
 
     def render(self, num, bindings={}):
         '''Render this template.'''
-        for var, handler in bindings.iteritems():
+        for var, handler in iter(bindings.items()):
             self.handlers[var] = handler
 
         # check unbind
-        for var, handler in self.handlers.iteritems():
+        for var, handler in iter(self.handlers.items()):
             if handler is None:
                 raise UnBindError('Unbind variable ' + var)
 
         def _gen():
-            for _ in xrange(0, num):
+            for _ in range(0, num):
                 yield (next(self.handlers[i]) for i in self.exprids)
         return _gen()
 
@@ -409,7 +409,7 @@ class Reference(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         if self.handler is None:
             return None
         else:
@@ -420,7 +420,7 @@ class Reference(object):
 def test_expr(str):
     import pprint
     result = parser.parse(str)
-    print str, '=> ',
+    print(str, '=> ', end='')
     pprint.pprint(result)
 
 if __name__ == '__main__':
@@ -432,7 +432,6 @@ if __name__ == '__main__':
     test_expr(r'${=func(a="123", b=456)}')
     test_expr(r'${myfunc=func(strarg="123", refarg=#var)}')
     test_expr(r'${myfunc=func(a=substr(s="123", start=1, len=2), b=123, c="456")}')
-
     test_expr(r'"123" ${myfunc=func(strarg="123", refarg=#var)}')
 
 
