@@ -7,6 +7,8 @@ import time
 def reseed():
     random.seed(int(time.time() * 1000))
 
+def import_file(file):
+    exec(open(file).read(), globals())
 
 def create_func_gen(func):
     assert func != None
